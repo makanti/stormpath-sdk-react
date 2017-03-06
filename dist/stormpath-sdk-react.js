@@ -1485,16 +1485,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (!groups) {
 	        return false;
 	      }
-
-	      var scope = JSON.parse(JSON.stringify(groups));
-	      var expressionFn = this.makePredicateFunction(expression);
-
+	      var groupsArr = [];
+	      if (!Array.isArray(groups) && typeof groups.items !== 'undefined') {
+	        groupsArr = groups.items.map(function (group) {
+	          return group.name;
+	        });
+	      } else {
+	        groupsArr = Object.keys(group);
+	      }
+	      var scope = {};
+	      var expressionFn = void 0;
+	      try {
+	        expressionFn = this.makePredicateFunction(expression);
+	      } catch (err) {
+	        this.logWarning('GroupExpression', 'Invalid boolean group expression: "' + expression + '"');
+	        return false;
+	      }
 	      expression.match(/(\w+)/gmi).forEach(function (wordMatch) {
-	        if (!(wordMatch in scope)) {
-	          scope[wordMatch] = false;
-	        }
+	        scope[wordMatch] = groupsArr.indexOf(wordMatch) > -1;
 	      });
-
 	      return expressionFn(scope);
 	    }
 	  }, {
